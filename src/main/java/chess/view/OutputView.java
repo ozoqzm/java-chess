@@ -3,7 +3,6 @@ package chess.view;
 import chess.domain.Board;
 import chess.domain.piece.Blank;
 import chess.domain.piece.Piece;
-import chess.domain.piece.Blank;
 
 public class OutputView {
 

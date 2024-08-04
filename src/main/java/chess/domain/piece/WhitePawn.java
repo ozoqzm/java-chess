@@ -6,7 +6,7 @@ import java.util.Set;
 
 public final class WhitePawn extends Pawn {
 
-    WhitePawn(final Position position) {
+    public WhitePawn(final Position position) {
         super(Color.WHITE, position);
     }
 

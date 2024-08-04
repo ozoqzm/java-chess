@@ -1,17 +1,20 @@
 package chess;
 
+import chess.dao.BoardDao;
 import chess.domain.Board;
+import chess.service.BoardService;
 import chess.view.InputView;
 import chess.view.OutputView;
 import chess.domain.ChessGame;
-
 
 public class Main {
     public static void main(String[] args) {
         InputView iv = new InputView();
         OutputView ov = new OutputView();
-        ChessGame chessGame = new ChessGame();
-        Board board = new Board();
+        BoardDao boardDao = new BoardDao();
+        BoardService boardService = new BoardService(boardDao);
+
+        ChessGame chessGame = new ChessGame(boardService); // gameId는 예시로 1로 설정
 
         System.out.println("체스 게임을 시작합니다.");
         System.out.println("> 게임 시작: start");
@@ -21,7 +24,7 @@ public class Main {
         while (true) {
             String input = iv.whether();
             if (input.equals("start")) {
-                ov.printChess(board);
+                ov.printChess(chessGame.getBoard()); // Print the current board
             } else if (input.equals("end")) {
                 break;
             } else if (input.startsWith("move")) {

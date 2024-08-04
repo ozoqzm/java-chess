@@ -1,12 +1,16 @@
 package chess.domain;
 
+import chess.service.BoardService;
 import chess.view.OutputView;
 
 public class ChessGame {
     private final Board board;
+    private final BoardService boardService;
+    private long gameId; // 게임 ID를 관리
 
-    public ChessGame() {
+    public ChessGame(BoardService boardService) {
         this.board = new Board();
+        this.boardService = boardService;
     }
 
     public void handleMove(String input, OutputView ov) {
@@ -24,6 +28,9 @@ public class ChessGame {
                 } else {
                     ov.printChess(board);
                 }
+                // 보드 상태 저장
+                boardService.saveBoardState(gameId, board);
+
             } catch (Exception e) {
                 System.out.println("이동 오류: " + e.getMessage());
             }
@@ -36,9 +43,7 @@ public class ChessGame {
         char columnChar = positionString.charAt(0);
         char rowChar = positionString.charAt(1);
 
-        Column column;
-        column = Column.valueOf(String.valueOf(columnChar).toUpperCase());
-
+        Column column = Column.valueOf(String.valueOf(columnChar).toUpperCase());
         Row row;
         try {
             int rowNumber = (rowChar - '0'); // 아래서부터
@@ -50,4 +55,7 @@ public class ChessGame {
         return new Position(row, column);
     }
 
+    public Board getBoard() {
+        return board;
+    }
 }

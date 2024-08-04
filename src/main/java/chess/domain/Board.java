@@ -2,6 +2,10 @@ package chess.domain;
 
 import chess.domain.piece.*;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class Board {
     private final Piece[][] board;
 
@@ -11,8 +15,8 @@ public class Board {
     }
 
     private void initializeBoard() {
-        // Initialize black pieces
-        board[0] = new Piece[]{
+        // 검은색 진영 하단 배치
+        board[7] = new Piece[]{
                 new Rook(Color.BLACK, new Position(Row.EIGHT, Column.A)),
                 new Knight(Color.BLACK, new Position(Row.EIGHT, Column.B)),
                 new Bishop(Color.BLACK, new Position(Row.EIGHT, Column.C)),
@@ -23,7 +27,7 @@ public class Board {
                 new Rook(Color.BLACK, new Position(Row.EIGHT, Column.H))
         };
         for (int i = 0; i < 8; i++) {
-            board[1][i] = new FirstBlackPawn(new Position(Row.SEVEN, Column.values()[i]));
+            board[6][i] = new FirstBlackPawn(new Position(Row.SEVEN, Column.values()[i]));
         }
 
         for (int i = 2; i < 6; i++) {
@@ -32,9 +36,9 @@ public class Board {
             }
         }
         for (int i = 0; i < 8; i++) {
-            board[6][i] = new FirstWhitePawn(new Position(Row.TWO, Column.values()[i]));
+            board[1][i] = new FirstWhitePawn(new Position(Row.TWO, Column.values()[i]));
         }
-        board[7] = new Piece[]{
+        board[0] = new Piece[]{
                 new Rook(Color.WHITE, new Position(Row.ONE, Column.A)),
                 new Knight(Color.WHITE, new Position(Row.ONE, Column.B)),
                 new Bishop(Color.WHITE, new Position(Row.ONE, Column.C)),
@@ -50,29 +54,33 @@ public class Board {
         return board[row][column];
     }
 
+    public void movePiece(Position from, Position to) {
+        Piece piece = getPiece(from.row().ordinal(), from.column().ordinal());
+        if (piece == null || piece instanceof Blank) {
+            throw new IllegalArgumentException("이동할 기물이 없습니다.");
+        }
+
+        Pieces pieces = new Pieces(piece.color(), getAllPieces());
+
+        // 이동할 기물이 목적지에 있을 경우 확인
+        Piece targetPiece = pieces.get(to);
+        if (!targetPiece.color().isEmpty() && targetPiece.color().equals(piece.color())) {
+            throw new IllegalArgumentException("자신의 기물이 있는 위치로 이동할 수 없습니다.");
+        }
+
+        // 기물 이동 처리
+        updatePiece(from, to, piece);
+    }
+
+    private Set<Piece> getAllPieces() {
+        return Arrays.stream(board)
+                .flatMap(Arrays::stream)
+                .filter(piece -> !(piece instanceof Blank))
+                .collect(Collectors.toSet());
+    }
+
     public void updatePiece(Position from, Position to, Piece piece) {
         board[to.row().ordinal()][to.column().ordinal()] = piece.update(to);
         board[from.row().ordinal()][from.column().ordinal()] = new Blank(from);
     }
-
-    // 현재 보드 출력
-    public void printBoard() {
-        for (int i = 7; i >= 0; i--) {
-            for (int j = 0; j < 8; j++) {
-                Piece piece = board[i][j];
-                if (piece.color().isEmpty()) {
-                    System.out.print('.');
-                } else {
-                    char symbol = piece.pieceType().symbol();
-                    if (piece.color().isWhite()) {
-                        System.out.print(Character.toLowerCase(symbol));
-                    } else {
-                        System.out.print(Character.toUpperCase(symbol));
-                    }
-                }
-            }
-            System.out.println();
-        }
-    }
-
 }

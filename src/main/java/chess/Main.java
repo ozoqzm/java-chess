@@ -3,11 +3,14 @@ package chess;
 import chess.domain.Board;
 import chess.view.InputView;
 import chess.view.OutputView;
+import chess.domain.ChessGame;
+
 
 public class Main {
     public static void main(String[] args) {
         InputView iv = new InputView();
         OutputView ov = new OutputView();
+        ChessGame chessGame = new ChessGame();
         Board board = new Board();
 
         System.out.println("체스 게임을 시작합니다.");
@@ -21,8 +24,10 @@ public class Main {
                 ov.printChess(board);
             } else if (input.equals("end")) {
                 break;
+            } else if (input.startsWith("move")) {
+                chessGame.handleMove(input, ov);
             } else {
-                System.out.println("잘못된 입력입니다. 'start' 또는 'end'를 입력하세요.");
+                ov.printInvalidCommand();
             }
         }
     }

@@ -16,7 +16,12 @@ public final class King extends NonSlidingPiece {
     }
 
     @Override
-    protected Piece update(final Position destination) {
+    public Piece update(final Position destination) {
         return new King(color(), destination);
+    }
+
+    @Override
+    public PieceType pieceType() {
+        return PieceType.KING;
     }
 }

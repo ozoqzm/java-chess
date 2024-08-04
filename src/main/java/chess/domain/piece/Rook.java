@@ -16,7 +16,11 @@ public final class Rook extends SlidingPiece {
     }
 
     @Override
-    protected Piece update(final Position destination) {
+    public Piece update(final Position destination) {
         return new Rook(color(), destination);
+    }
+    @Override
+    public PieceType pieceType() {
+        return PieceType.ROOK;
     }
 }

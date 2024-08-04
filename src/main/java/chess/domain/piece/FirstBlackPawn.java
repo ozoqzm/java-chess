@@ -16,7 +16,12 @@ public final class FirstBlackPawn extends Pawn {
     }
 
     @Override
-    protected Piece update(final Position destination) {
+    public Piece update(final Position destination) {
         return new BlackPawn(destination);
+    }
+
+    @Override
+    public PieceType pieceType() {
+        return PieceType.PAWN;
     }
 }

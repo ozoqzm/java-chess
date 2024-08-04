@@ -16,7 +16,12 @@ public final class Knight extends NonSlidingPiece {
     }
 
     @Override
-    protected Piece update(final Position destination) {
+    public Piece update(final Position destination) {
         return new Knight(color(), destination);
+    }
+
+    @Override
+    public PieceType pieceType() {
+        return PieceType.KNIGHT;
     }
 }

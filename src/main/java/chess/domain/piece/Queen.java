@@ -16,7 +16,11 @@ public final class Queen extends SlidingPiece {
     }
 
     @Override
-    protected Piece update(final Position destination) {
+    public Piece update(final Position destination) {
         return new Queen(color(), destination);
+    }
+    @Override
+    public PieceType pieceType() {
+        return PieceType.QUEEN;
     }
 }

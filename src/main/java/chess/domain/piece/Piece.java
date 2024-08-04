@@ -6,11 +6,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// 추상 클래스 (기물 공통적 속성 & 행동 )
 public abstract class Piece {
 
     private final Color color;
-
     private final Position position;
 
     protected Piece(final Color color, final Position position) {
@@ -44,7 +42,9 @@ public abstract class Piece {
 
     protected abstract Set<Position> legalMovePositions(Direction direction, Pieces pieces); // 특정 방향으로 이동 가능한 위치들 계산
 
-    protected abstract Piece update(Position destination); // 위치 업데이트 후 기물 반환
+    public abstract Piece update(Position destination); // 위치 업데이트 후 기물 반환
+
+    public abstract PieceType pieceType(); // 기물의 타입을 반환하는 메서드
 
     public final Color color() {
         return color;
@@ -56,18 +56,18 @@ public abstract class Piece {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) { // 자기 자신과 비교
+        if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) { // null이거나 클래스 타입 다를 경우
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Piece piece = (Piece) o; // 타입캐스팅
-        return color == piece.color && Objects.equals(position, piece.position); // 필드값 모두 동할 경우
+        final Piece piece = (Piece) o;
+        return color == piece.color && Objects.equals(position, piece.position);
     }
 
     @Override
-    public int hashCode() { // 기물의 해시 코드 반환
+    public int hashCode() {
         return Objects.hash(color, position);
     }
 

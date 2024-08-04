@@ -22,7 +22,12 @@ public final class Blank extends Piece {
     }
 
     @Override
-    protected Piece update(final Position destination) {
+    public Piece update(final Position destination) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PieceType pieceType() {
+        return PieceType.EMPTY;
     }
 }

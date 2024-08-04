@@ -1,7 +1,6 @@
 package chess.domain.piece;
 
 public enum PieceType {
-
     PAWN('P', 1.0),
     ROOK('R', 5.0),
     KNIGHT('N', 2.5),
@@ -11,13 +10,9 @@ public enum PieceType {
     EMPTY(' ', 0.0);
 
     private final char symbol;
-
     private final double value;
 
-    PieceType(
-            final char symbol,
-            final double value
-    ) {
+    PieceType(final char symbol, final double value) {
         this.symbol = symbol;
         this.value = value;
     }

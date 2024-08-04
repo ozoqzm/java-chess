@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 
 public class Board {
     private final Piece[][] board;
-    private Position whiteKingPosition;
-    private Position blackKingPosition;
 
     public Board() {
         this.board = new Piece[8][8];

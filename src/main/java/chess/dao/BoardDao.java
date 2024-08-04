@@ -1,119 +1,143 @@
 package chess.dao;
 
 import chess.domain.Board;
-import chess.domain.Column;
+import chess.domain.piece.Blank;
+import chess.domain.piece.Color;
+import chess.domain.piece.Piece;
+import chess.domain.piece.*;
 import chess.domain.Position;
 import chess.domain.Row;
-import chess.domain.piece.*;
-import java.sql.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import chess.domain.Column;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class BoardDao {
     private static final String SERVER = "localhost:3306"; // MySQL 서버 주소
-    private static final String DATABASE = "chess"; // MySQL DATABASE 이름
+    private static final String DATABASE = "chess"; // MySQL 데이터베이스 이름
     private static final String OPTION = "?useSSL=false&serverTimezone=UTC";
     private static final String USERNAME = "root"; // MySQL 서버 아이디
     private static final String PASSWORD = "20020923"; // MySQL 서버 비밀번호
 
-    public Connection getConnection() {
-        // 드라이버 연결
+    private Connection getConnection() {
         try {
-            return DriverManager.getConnection("jdbc:mysql://" + SERVER + "/" + DATABASE + OPTION, USERNAME, PASSWORD);
-        } catch (final SQLException e) {
-            System.err.println("DB 연결 오류: " + e.getMessage());
+            return DriverManager.getConnection(
+                    "jdbc:mysql://" + SERVER + "/" + DATABASE + OPTION, USERNAME, PASSWORD
+            );
+        } catch (SQLException e) {
+            System.err.println("DB 연결 오류:" + e.getMessage());
             e.printStackTrace();
             return null;
         }
     }
 
-    public void savePieces(long gameId, Set<Piece> pieces) throws SQLException {
-        String pieceQuery = "INSERT INTO piece (x, y, color, type) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE x=VALUES(x), y=VALUES(y), color=VALUES(color), type=VALUES(type)";
-        String gamePieceQuery = "INSERT INTO chess_game_piece (chess_game_id, piece_id) VALUES (?, ?)";
+    public Board loadBoard() {
+        Board board = new Board(); // 새로운 보드 객체 생성
+        String sql = "SELECT row_num, col_num, piece_type, color FROM board_state";
 
-        try (Connection connection = getConnection();
-             PreparedStatement pieceStatement = connection.prepareStatement(pieceQuery, Statement.RETURN_GENERATED_KEYS);
-             PreparedStatement gamePieceStatement = connection.prepareStatement(gamePieceQuery)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
 
-            Map<Piece, Long> pieceIdMap = new HashMap<>();
+            while (rs.next()) {
+                int rowNum = rs.getInt("row_num");
+                int colNum = rs.getInt("col_num");
+                String pieceType = rs.getString("piece_type");
+                String color = rs.getString("color");
 
-            for (Piece piece : pieces) {
-                pieceStatement.setString(1, piece.position().column().name());
-                pieceStatement.setString(2, piece.position().row().name());
-                pieceStatement.setString(3, piece.color().name());
-                pieceStatement.setString(4, piece.pieceType().name());
-                pieceStatement.addBatch();
+                Position position = new Position(Row.values()[rowNum], Column.values()[colNum]);
+                Piece piece = createPiece(pieceType, color, position);
+
+                // 직접 보드에 기물 설정
+                board.getPiece(rowNum, colNum).update(position); // 해당 위치에 기물 설정
             }
 
-            pieceStatement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
-            ResultSet generatedKeys = pieceStatement.getGeneratedKeys();
-            while (generatedKeys.next()) {
-                long pieceId = generatedKeys.getLong(1);
-                Piece piece = findPieceById(pieces, pieceId);
-                if (piece != null) {
-                    pieceIdMap.put(piece, pieceId);
+        return board;
+    }
+
+    public void saveBoard(Board board) {
+        String sql = "INSERT INTO board_state (row_num, col_num, piece_type, color) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // 기존 보드 상태 삭제
+            String deleteSql = "DELETE FROM board_state";
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+                deleteStmt.executeUpdate();
+            }
+
+            for (int row = 0; row < 8; row++) {
+                for (int col = 0; col < 8; col++) {
+                    Piece piece = board.getPiece(row, col);
+                    if (!(piece instanceof Blank)) {
+                        pstmt.setInt(1, row);
+                        pstmt.setInt(2, col);
+                        pstmt.setString(3, piece.pieceType().name());
+                        pstmt.setString(4, piece.color().name());
+                        pstmt.addBatch();
+                    }
                 }
             }
+            pstmt.executeBatch();
 
-            for (Map.Entry<Piece, Long> entry : pieceIdMap.entrySet()) {
-                gamePieceStatement.setLong(1, gameId);
-                gamePieceStatement.setLong(2, entry.getValue());
-                gamePieceStatement.addBatch();
-            }
-            gamePieceStatement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    public Set<Piece> loadPieces(long gameId) throws SQLException {
-        Set<Piece> pieces = new HashSet<>();
-        String query = "SELECT p.type, p.color, p.x, p.y FROM piece p JOIN chess_game_piece cgp ON p.id = cgp.piece_id WHERE cgp.chess_game_id = ?";
+    public void insertInitialBoardState() {
+        String sql = "INSERT INTO board_state (row_num, col_num, piece_type, color) VALUES (?, ?, ?, ?)";
 
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            statement.setLong(1, gameId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    String pieceType = resultSet.getString("type");
-                    String color = resultSet.getString("color");
-                    String column = resultSet.getString("x");
-                    String row = resultSet.getString("y");
-                    Position position = new Position(Row.valueOf(row), Column.valueOf(column));
-
-                    Piece piece = createPiece(pieceType, color, position);
-                    pieces.add(piece);
+            // 초기 보드 상태를 데이터베이스에 저장
+            Board board = new Board();
+            for (int row = 0; row < 8; row++) {
+                for (int col = 0; col < 8; col++) {
+                    Piece piece = board.getPiece(row, col);
+                    if (!(piece instanceof Blank)) {
+                        pstmt.setInt(1, row);
+                        pstmt.setInt(2, col);
+                        pstmt.setString(3, piece.pieceType().name());
+                        pstmt.setString(4, piece.color().name());
+                        pstmt.addBatch();
+                    }
                 }
             }
+            pstmt.executeBatch();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return pieces;
     }
 
     private Piece createPiece(String pieceType, String color, Position position) {
         Color pieceColor = Color.valueOf(color);
         switch (pieceType) {
-            case "PAWN":
-                return pieceColor == Color.WHITE ? new WhitePawn(position) : new BlackPawn(position);
-            case "ROOK":
-                return new Rook(pieceColor, position);
-            case "KNIGHT":
-                return new Knight(pieceColor, position);
-            case "BISHOP":
-                return new Bishop(pieceColor, position);
-            case "QUEEN":
-                return new Queen(pieceColor, position);
             case "KING":
                 return new King(pieceColor, position);
+            case "QUEEN":
+                return new Queen(pieceColor, position);
+            case "ROOK":
+                return new Rook(pieceColor, position);
+            case "BISHOP":
+                return new Bishop(pieceColor, position);
+            case "KNIGHT":
+                return new Knight(pieceColor, position);
+            case "PAWN":
+                // Default to FirstBlackPawn or FirstWhitePawn based on color
+                return pieceColor == Color.BLACK ? new FirstBlackPawn(position) : new FirstWhitePawn(position);
             default:
                 throw new IllegalArgumentException("Unknown piece type: " + pieceType);
         }
-    }
-
-    private Piece findPieceById(Set<Piece> pieces, long pieceId) {
-        // Implement this method based on how you track the piece objects
-        // This might require an additional way to retrieve piece objects or maintain a map
-        return null; // Placeholder
     }
 }

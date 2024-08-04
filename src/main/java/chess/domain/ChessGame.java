@@ -1,16 +1,16 @@
 package chess.domain;
 
 import chess.service.BoardService;
+import chess.domain.Position;
 import chess.view.OutputView;
 
 public class ChessGame {
-    private final Board board;
+    private Board board;
     private final BoardService boardService;
-    private long gameId; // 게임 ID를 관리
 
     public ChessGame(BoardService boardService) {
-        this.board = new Board();
         this.boardService = boardService;
+        this.board = new Board(); // 초기화할 필요 없으니 loadGame에서 로드
     }
 
     public void handleMove(String input, OutputView ov) {
@@ -19,17 +19,17 @@ public class ChessGame {
             try {
                 Position from = parsePosition(parts[1]); // 출발지
                 Position to = parsePosition(parts[2]); // 목적지
-                board.movePiece(from, to);
+                boardService.movePiece(board, from, to);
 
                 // 게임 종료 상태 확인
-                if (board.isGameOver()) {
+                if (boardService.isGameOver(board)) {
                     ov.printChess(board);
-                    ov.printGameOver(board.getWinner(), board);
+                    ov.printGameOver(boardService.getWinner(board), board);
                 } else {
                     ov.printChess(board);
                 }
                 // 보드 상태 저장
-                boardService.saveBoardState(gameId, board);
+                boardService.saveBoard(board);
 
             } catch (Exception e) {
                 System.out.println("이동 오류: " + e.getMessage());
@@ -37,6 +37,11 @@ public class ChessGame {
         } else {
             ov.printInvalidCommand();
         }
+    }
+
+    public void startGame() {
+        boardService.insertInitialBoardState(); // 초기 보드 상태를 데이터베이스에 저장
+        loadGame(); // 게임 시작 시 보드 상태 로드
     }
 
     private Position parsePosition(String positionString) {
@@ -53,6 +58,10 @@ public class ChessGame {
         }
 
         return new Position(row, column);
+    }
+
+    public void loadGame() {
+        boardService.loadBoard(); // 데이터베이스에서 보드 상태를 로드
     }
 
     public Board getBoard() {

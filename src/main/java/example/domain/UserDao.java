@@ -12,7 +12,7 @@ public final class UserDao {
     private static final String OPTION =
             "?useSSL=false&serverTimezone=UTC";
     private static final String USERNAME =
-            "root"; // MySQL 서 버 아 이 디
+            "root"; // MySQL 서 버 아이디
     private static final String PASSWORD =
             "20020923"; // MySQL 서버 비밀번호
 

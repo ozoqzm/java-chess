@@ -54,22 +54,28 @@ public class Board {
         return board[row][column];
     }
 
+    public Piece getPiece(Position position) {
+        return board[position.row().ordinal()][position.column().ordinal()];
+    }
+
     public void movePiece(Position from, Position to) {
-        Piece piece = getPiece(from.row().ordinal(), from.column().ordinal());
+        Piece piece = getPiece(from);
         if (piece == null || piece instanceof Blank) {
             throw new IllegalArgumentException("이동할 기물이 없습니다.");
         }
 
-        Pieces pieces = new Pieces(piece.color(), getAllPieces());
+        Set<Piece> allPieces = getAllPieces();
 
-        // 이동할 기물이 목적지에 있을 경우 확인
-        Piece targetPiece = pieces.get(to);
+        // 이동할 수 있는지 체크
+        Piece movedPiece = piece.move(to, allPieces);
+
+        Piece targetPiece = getPiece(to);
         if (!targetPiece.color().isEmpty() && targetPiece.color().equals(piece.color())) {
             throw new IllegalArgumentException("자신의 기물이 있는 위치로 이동할 수 없습니다.");
         }
 
-        // 기물 이동 처리
-        updatePiece(from, to, piece);
+        // 이동 수행
+        updatePiece(from, to, movedPiece);
     }
 
     private Set<Piece> getAllPieces() {

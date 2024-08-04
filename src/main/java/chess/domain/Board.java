@@ -3,11 +3,15 @@ package chess.domain;
 import chess.domain.piece.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Board {
     private final Piece[][] board;
+    private Position whiteKingPosition;
+    private Position blackKingPosition;
 
     public Board() {
         this.board = new Piece[8][8];
@@ -59,23 +63,21 @@ public class Board {
     }
 
     public void movePiece(Position from, Position to) {
-        Piece piece = getPiece(from);
+        Piece piece = getPiece(from.row().ordinal(), from.column().ordinal());
         if (piece == null || piece instanceof Blank) {
             throw new IllegalArgumentException("이동할 기물이 없습니다.");
         }
 
-        Set<Piece> allPieces = getAllPieces();
+        Pieces pieces = new Pieces(piece.color(), getAllPieces());
 
-        // 이동할 수 있는지 체크
-        Piece movedPiece = piece.move(to, allPieces);
-
-        Piece targetPiece = getPiece(to);
+        // 이동할 기물이 목적지에 있을 경우 확인
+        Piece targetPiece = pieces.get(to);
         if (!targetPiece.color().isEmpty() && targetPiece.color().equals(piece.color())) {
             throw new IllegalArgumentException("자신의 기물이 있는 위치로 이동할 수 없습니다.");
         }
 
-        // 이동 수행
-        updatePiece(from, to, movedPiece);
+        // 기물 이동 처리
+        updatePiece(from, to, piece);
     }
 
     private Set<Piece> getAllPieces() {
@@ -88,5 +90,53 @@ public class Board {
     public void updatePiece(Position from, Position to, Piece piece) {
         board[to.row().ordinal()][to.column().ordinal()] = piece.update(to);
         board[from.row().ordinal()][from.column().ordinal()] = new Blank(from);
+    }
+
+    public boolean isGameOver() {
+        return getKing(Color.WHITE) == null || getKing(Color.BLACK) == null;
+    }
+
+    public Color getWinner() {
+        if (getKing(Color.WHITE) == null) {
+            return Color.BLACK;
+        } else if (getKing(Color.BLACK) == null) {
+            return Color.WHITE;
+        }
+        throw new IllegalStateException("게임이 아직 종료되지 않았습니다.");
+    }
+
+    public double getScore(Color color) {
+        Map<Integer, Integer> columnCounts = new HashMap<>();  // 각 열의 폰 개수
+        double score = 0.0;
+
+        // 기물 점수 계산
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = board[row][col];
+                if (piece.color().equals(color) && !(piece instanceof Blank)) {
+//                    if (piece.pieceType() == PieceType.PAWN) {
+//                        // 같은 세로줄 같은 색 폰의 수
+//                        columnCounts.put(col, columnCounts.getOrDefault(col, 0) + 1);
+//                    }
+                    score += piece.pieceType().value();
+                }
+            }
+        }
+        // 같은 세로줄에 있는 폰의 점수 조정
+//        for (int column : columnCounts.keySet()) {
+//            int count = columnCounts.get(column);
+//            if (count > 1) {
+//                score -= count * 0.5; // 기본 점수에서 0.5씩 감소
+//            }
+//        }
+        return score;
+    }
+
+    private Piece getKing(Color color) {
+        return Arrays.stream(board)
+                .flatMap(Arrays::stream)
+                .filter(piece -> piece instanceof King && piece.color().equals(color))
+                .findFirst()
+                .orElse(null);
     }
 }

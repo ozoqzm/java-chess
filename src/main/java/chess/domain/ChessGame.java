@@ -24,7 +24,14 @@ public class ChessGame {
                 Position from = parsePosition(parts[1]); // 출발지
                 Position to = parsePosition(parts[2]); // 목적지
                 movePiece(from, to);
-                ov.printChess(board);
+
+                // 게임 종료 상태 확인
+                if (board.isGameOver()) {
+                    ov.printChess(board);
+                    ov.printGameOver(board.getWinner(), board);
+                } else {
+                    ov.printChess(board);
+                }
             } catch (Exception e) {
                 System.out.println("이동 오류: " + e.getMessage());
             }

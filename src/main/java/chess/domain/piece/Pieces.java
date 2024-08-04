@@ -1,10 +1,11 @@
-package chess.domain;
+package chess.domain.piece;
+
+import chess.domain.Position;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.function.UnaryOperator.identity;
 import static java.util.stream.Collectors.toMap;
@@ -13,11 +14,11 @@ import static java.util.stream.Collectors.toMap;
 public final class Pieces {
 
     private final Color color;
-
     private final Map<Position, Piece> value;
 
     Pieces(final Color color, final Set<Piece> value) {
-        this(color, value.stream().collect(toMap(Piece::position, identity())));
+        // Set<Piece>를 Map<Position, Piece>으로..
+        this(color, value.stream().collect(toMap(Piece::position, identity()))); // 각 piece의 position을 키로 사용, piece가 map의 값
     }
 
     Pieces(final Color color, final Map<Position, Piece> value) {

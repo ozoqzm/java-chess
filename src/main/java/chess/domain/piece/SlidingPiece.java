@@ -1,8 +1,11 @@
-package chess.domain;
+package chess.domain.piece;
+
+import chess.domain.Position;
 
 import java.util.HashSet;
 import java.util.Set;
 
+// 연속 여러 칸 이동 가능 (퀸, 룩, 비숍)
 public abstract class SlidingPiece extends Piece {
 
     protected SlidingPiece(final Color color, final Position position) {

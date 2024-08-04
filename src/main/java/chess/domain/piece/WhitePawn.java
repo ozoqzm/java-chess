@@ -1,16 +1,18 @@
-package chess.domain;
+package chess.domain.piece;
+
+import chess.domain.Position;
 
 import java.util.Set;
 
-public final class FirstWhitePawn extends Pawn {
+public final class WhitePawn extends Pawn {
 
-    public FirstWhitePawn(final Position position) {
+    WhitePawn(final Position position) {
         super(Color.WHITE, position);
     }
 
     @Override
     protected Set<Direction> directions() {
-        return Direction.ofFirstWhitePawn();
+        return Direction.ofWhitePawn();
     }
 
     @Override

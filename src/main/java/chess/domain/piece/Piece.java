@@ -1,4 +1,6 @@
-package chess.domain;
+package chess.domain.piece;
+
+import chess.domain.Position;
 
 import java.util.Objects;
 import java.util.Set;
@@ -38,11 +40,11 @@ public abstract class Piece {
                 .collect(Collectors.toSet());
     }
 
-    protected abstract Set<Direction> directions();
+    protected abstract Set<Direction> directions(); // 가능한 이동 방향들
 
-    protected abstract Set<Position> legalMovePositions(Direction direction, Pieces pieces);
+    protected abstract Set<Position> legalMovePositions(Direction direction, Pieces pieces); // 특정 방향으로 이동 가능한 위치들 계산
 
-    protected abstract Piece update(Position destination);
+    protected abstract Piece update(Position destination); // 위치 업데이트 후 기물 반환
 
     public final Color color() {
         return color;
@@ -54,18 +56,18 @@ public abstract class Piece {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) {
+        if (this == o) { // 자기 자신과 비교
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass()) { // null이거나 클래스 타입 다를 경우
             return false;
         }
-        final Piece piece = (Piece) o;
-        return color == piece.color && Objects.equals(position, piece.position);
+        final Piece piece = (Piece) o; // 타입캐스팅
+        return color == piece.color && Objects.equals(position, piece.position); // 필드값 모두 동할 경우
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode() { // 기물의 해시 코드 반환
         return Objects.hash(color, position);
     }
 

@@ -113,22 +113,22 @@ public class Board {
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 Piece piece = board[row][col];
-                if (piece.color().equals(color) && !(piece instanceof Blank)) {
-//                    if (piece.pieceType() == PieceType.PAWN) {
-//                        // 같은 세로줄 같은 색 폰의 수
-//                        columnCounts.put(col, columnCounts.getOrDefault(col, 0) + 1);
-//                    }
+                if (piece.color().equals(color) && !(piece instanceof Blank)) { // 색같고 빈칸 아니면
+                    if (piece.pieceType() == PieceType.PAWN) {
+                        // getOrDefault- 주어진 키값 반환, 키 x경우 기본값 반환
+                        columnCounts.put(col, columnCounts.getOrDefault(col, 0) + 1);
+                    }
                     score += piece.pieceType().value();
                 }
             }
         }
         // 같은 세로줄에 있는 폰의 점수 조정
-//        for (int column : columnCounts.keySet()) {
-//            int count = columnCounts.get(column);
-//            if (count > 1) {
-//                score -= count * 0.5; // 기본 점수에서 0.5씩 감소
-//            }
-//        }
+        for (int column : columnCounts.keySet()) {
+            int count = columnCounts.get(column);
+            if (count > 1) {
+                score -= count * 0.5; // 기본 점수에서 0.5씩 감소
+            }
+        }
         return score;
     }
 

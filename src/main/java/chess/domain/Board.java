@@ -15,7 +15,7 @@ public class Board {
 
     public Board() {
         this.board = new Piece[8][8];
-        initializeBoard();
+        initializeBoard(); // 체스판 초기화
     }
 
     private void initializeBoard() {
@@ -58,16 +58,11 @@ public class Board {
         return board[row][column];
     }
 
-    public Piece getPiece(Position position) {
-        return board[position.row().ordinal()][position.column().ordinal()];
-    }
-
     public void movePiece(Position from, Position to) {
         Piece piece = getPiece(from.row().ordinal(), from.column().ordinal());
-        if (piece == null || piece instanceof Blank) {
+        if (piece == null || piece instanceof Blank) { // piece가 Blank의 인스턴스일 경우
             throw new IllegalArgumentException("이동할 기물이 없습니다.");
         }
-
         Pieces pieces = new Pieces(piece.color(), getAllPieces());
 
         // 이동할 기물이 목적지에 있을 경우 확인
@@ -75,16 +70,16 @@ public class Board {
         if (!targetPiece.color().isEmpty() && targetPiece.color().equals(piece.color())) {
             throw new IllegalArgumentException("자신의 기물이 있는 위치로 이동할 수 없습니다.");
         }
-
         // 기물 이동 처리
         updatePiece(from, to, piece);
     }
 
     private Set<Piece> getAllPieces() {
+        // 빈칸 아닌 모든 기물 반환
         return Arrays.stream(board)
-                .flatMap(Arrays::stream)
+                .flatMap(Arrays::stream) // stream 평면화
                 .filter(piece -> !(piece instanceof Blank))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet()); // stream 요소들 컬렉션으로 수집해 지정한 컬렉션으로 반환
     }
 
     public void updatePiece(Position from, Position to, Piece piece) {
@@ -92,6 +87,13 @@ public class Board {
         board[from.row().ordinal()][from.column().ordinal()] = new Blank(from);
     }
 
+    private Piece getKing(Color color) {
+        return Arrays.stream(board)// 각 Piece[] 배열 스트림으로 변환(Stream<Piece[]>를 Stream<Piece> 로)
+                .flatMap(Arrays::stream) // stream 평면화
+                .filter(piece -> piece instanceof King && piece.color().equals(color))
+                .findFirst()// 첫번째 요소 반환
+                .orElse(null); // 기본값으로 null
+    }
     public boolean isGameOver() {
         return getKing(Color.WHITE) == null || getKing(Color.BLACK) == null;
     }
@@ -130,13 +132,5 @@ public class Board {
             }
         }
         return score;
-    }
-
-    private Piece getKing(Color color) {
-        return Arrays.stream(board)
-                .flatMap(Arrays::stream)
-                .filter(piece -> piece instanceof King && piece.color().equals(color))
-                .findFirst()
-                .orElse(null);
     }
 }

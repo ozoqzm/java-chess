@@ -9,21 +9,13 @@ public class ChessGame {
         this.board = new Board();
     }
 
-    public void movePiece(Position from, Position to) {
-        board.movePiece(from, to);
-    }
-
-    public Board getBoard() {
-        return board;
-    }
-
     public void handleMove(String input, OutputView ov) {
         String[] parts = input.split(" ");
         if (parts.length == 3) {
             try {
                 Position from = parsePosition(parts[1]); // 출발지
                 Position to = parsePosition(parts[2]); // 목적지
-                movePiece(from, to);
+                board.movePiece(from, to);
 
                 // 게임 종료 상태 확인
                 if (board.isGameOver()) {
